@@ -20,7 +20,7 @@ export default {
   name: "App",
 
   components: {
-    Toolbar
+    Toolbar,
   },
 
   data: () => ({

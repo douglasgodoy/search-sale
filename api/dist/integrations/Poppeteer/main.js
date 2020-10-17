@@ -37,7 +37,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 exports.__esModule = true;
 var puppeteer = require("puppeteer");
-exports["default"] = (function (body) { return __awaiter(void 0, void 0, void 0, function () {
+var getFromOlx = function (body) { return __awaiter(void 0, void 0, void 0, function () {
     var browser, page, valueSearchUrl, data;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -52,21 +52,25 @@ exports["default"] = (function (body) { return __awaiter(void 0, void 0, void 0,
             case 3:
                 _a.sent();
                 return [4 /*yield*/, page.evaluate(function () {
-                        var getDataSale = function (el) {
-                            var title = el.getAttribute('title');
-                            var value = Array.from(el.querySelectorAll('p'))
-                                .filter(function (p) { return p.textContent.match(/R\$/); })
-                                .map(function (filtered) { return filtered.textContent; })
-                                .reduce(function (acc, str) { return str; }, '');
-                            var img = Array.from(el.querySelectorAll('img'))
-                                .map(function (img) { return img.src; })
-                                .reduce(function (acc, str) { return str; }, '');
-                            var link = el.getAttribute('href');
-                            return { title: title, value: value, img: img, link: link };
-                        };
-                        return Array.from(document.querySelectorAll('#ad-list li a'))
-                            .map(getDataSale)
-                            .filter(function (data) { return data.title && data.img.match(/http/g); });
+                        try {
+                            var getDataSale = function (el) { return ({
+                                value: Array.from(el.querySelectorAll('p'))
+                                    .filter(function (p) { return p.textContent.match(/R\$/); })
+                                    .map(function (filtered) { return filtered.textContent; })
+                                    .toString(),
+                                img: Array.from(el.querySelectorAll('img'))
+                                    .map(function (img) { return img.dataset.src; })
+                                    .toString(),
+                                title: el.getAttribute('title'),
+                                link: el.getAttribute('href')
+                            }); };
+                            var dataArray = Array.from(document.querySelectorAll('#ad-list li a'));
+                            return dataArray.map(getDataSale).filter(function (data) { return data.title && /http/g.test(data.img); });
+                        }
+                        catch (error) {
+                            console.error(error);
+                            return false;
+                        }
                     })];
             case 4:
                 data = _a.sent();
@@ -74,6 +78,16 @@ exports["default"] = (function (body) { return __awaiter(void 0, void 0, void 0,
             case 5:
                 _a.sent();
                 return [2 /*return*/, data];
+        }
+    });
+}); };
+exports["default"] = (function (body) { return __awaiter(void 0, void 0, void 0, function () {
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, getFromOlx(body)];
+            case 1: 
+            // const ret = await Promise.all([getFromOlx, getFromFacebook])
+            return [2 /*return*/, _a.sent()];
         }
     });
 }); });

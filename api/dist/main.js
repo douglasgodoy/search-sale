@@ -55,6 +55,7 @@ app.post('/', function (req, res, next) { return __awaiter(void 0, void 0, void 
                 return [4 /*yield*/, main_1["default"](req.body)];
             case 1:
                 _b.apply(_a, [_c.sent()]);
+                next();
                 return [2 /*return*/];
         }
     });
