@@ -37,57 +37,62 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 exports.__esModule = true;
 var puppeteer = require("puppeteer");
-var getFromOlx = function (body) { return __awaiter(void 0, void 0, void 0, function () {
-    var browser, page, valueSearchUrl, data;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, puppeteer.launch()];
-            case 1:
-                browser = _a.sent();
-                return [4 /*yield*/, browser.newPage()];
-            case 2:
-                page = _a.sent();
-                valueSearchUrl = body.search.split(' ').join('%20');
-                return [4 /*yield*/, page.goto("https://pr.olx.com.br/regiao-de-maringa?q=" + valueSearchUrl)];
-            case 3:
-                _a.sent();
-                return [4 /*yield*/, page.evaluate(function () {
-                        try {
-                            var getDataSale = function (el) { return ({
-                                value: Array.from(el.querySelectorAll('p'))
-                                    .filter(function (p) { return p.textContent.match(/R\$/); })
-                                    .map(function (filtered) { return filtered.textContent; })
-                                    .toString(),
-                                img: Array.from(el.querySelectorAll('img'))
-                                    .map(function (img) { return img.dataset.src; })
-                                    .toString(),
-                                title: el.getAttribute('title'),
-                                link: el.getAttribute('href')
-                            }); };
-                            var dataArray = Array.from(document.querySelectorAll('#ad-list li a'));
-                            return dataArray.map(getDataSale).filter(function (data) { return data.title && /http/g.test(data.img); });
-                        }
-                        catch (error) {
-                            console.error(error);
-                            return false;
-                        }
-                    })];
-            case 4:
-                data = _a.sent();
-                return [4 /*yield*/, browser.close()];
-            case 5:
-                _a.sent();
-                return [2 /*return*/, data];
-        }
-    });
-}); };
+var scraping = {
+    olx: function (body) { return __awaiter(void 0, void 0, void 0, function () {
+        var browser, page, valueSearchUrl, pagination, issetPag, data;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, puppeteer.launch()];
+                case 1:
+                    browser = _a.sent();
+                    return [4 /*yield*/, browser.newPage()];
+                case 2:
+                    page = _a.sent();
+                    valueSearchUrl = body.search.split(' ').join('%20');
+                    pagination = body.pagination || false;
+                    issetPag = pagination.length ? "o=" + pagination.number + "&" : '';
+                    return [4 /*yield*/, page.goto("https://pr.olx.com.br/regiao-de-maringa?" + issetPag + "q=" + valueSearchUrl)];
+                case 3:
+                    _a.sent();
+                    return [4 /*yield*/, page.evaluate(function () {
+                            try {
+                                var getDataSale = function (el) { return ({
+                                    value: Array.from(el.querySelectorAll('p'))
+                                        .filter(function (p) { return p.textContent.match(/R\$/); })
+                                        .map(function (filtered) { return filtered.textContent; })
+                                        .toString(),
+                                    img: Array.from(el.querySelectorAll('img'))
+                                        .map(function (img) { return img.dataset.src; })
+                                        .toString(),
+                                    title: el.getAttribute('title'),
+                                    link: el.getAttribute('href')
+                                }); };
+                                var dataArray = Array.from(document.querySelectorAll('#ad-list li a'));
+                                var countPages = document.querySelectorAll('[data-lurker-detail="pagination_item"]').length + 1;
+                                var sanitizeFilters = dataArray.map(getDataSale).filter(function (data) { return data.title && /http/g.test(data.img); });
+                                sanitizeFilters[0].page = countPages;
+                                return sanitizeFilters;
+                            }
+                            catch (error) {
+                                console.error(error);
+                                return false;
+                            }
+                        })];
+                case 4:
+                    data = _a.sent();
+                    return [4 /*yield*/, browser.close()];
+                case 5:
+                    _a.sent();
+                    return [2 /*return*/, data];
+            }
+        });
+    }); }
+};
 exports["default"] = (function (body) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
         switch (_a.label) {
-            case 0: return [4 /*yield*/, getFromOlx(body)];
-            case 1: 
-            // const ret = await Promise.all([getFromOlx, getFromFacebook])
-            return [2 /*return*/, _a.sent()];
+            case 0: return [4 /*yield*/, scraping.olx(body)];
+            case 1: return [2 /*return*/, _a.sent()];
         }
     });
 }); });
