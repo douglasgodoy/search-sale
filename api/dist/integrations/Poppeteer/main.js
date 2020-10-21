@@ -37,62 +37,76 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 exports.__esModule = true;
 var puppeteer = require("puppeteer");
+var utils_1 = require("../../../utils");
 var scraping = {
-    olx: function (body) { return __awaiter(void 0, void 0, void 0, function () {
-        var browser, page, valueSearchUrl, pagination, issetPag, data;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
+    init: function (body) { return __awaiter(void 0, void 0, void 0, function () {
+        var browser, valueSearchUrl, pagination, issetPag, _a;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
                 case 0: return [4 /*yield*/, puppeteer.launch()];
                 case 1:
-                    browser = _a.sent();
-                    return [4 /*yield*/, browser.newPage()];
-                case 2:
-                    page = _a.sent();
+                    browser = _b.sent();
                     valueSearchUrl = body.search.split(' ').join('%20');
-                    pagination = body.pagination || false;
-                    issetPag = pagination.length ? "o=" + pagination.number + "&" : '';
-                    return [4 /*yield*/, page.goto("https://pr.olx.com.br/regiao-de-maringa?" + issetPag + "q=" + valueSearchUrl)];
-                case 3:
-                    _a.sent();
-                    return [4 /*yield*/, page.evaluate(function () {
-                            try {
-                                var getDataSale = function (el) { return ({
-                                    value: Array.from(el.querySelectorAll('p'))
-                                        .filter(function (p) { return p.textContent.match(/R\$/); })
-                                        .map(function (filtered) { return filtered.textContent; })
-                                        .toString(),
-                                    img: Array.from(el.querySelectorAll('img'))
-                                        .map(function (img) { return img.dataset.src; })
-                                        .toString(),
-                                    title: el.getAttribute('title'),
-                                    link: el.getAttribute('href')
-                                }); };
-                                var dataArray = Array.from(document.querySelectorAll('#ad-list li a'));
-                                var countPages = document.querySelectorAll('[data-lurker-detail="pagination_item"]').length + 1;
-                                var sanitizeFilters = dataArray.map(getDataSale).filter(function (data) { return data.title && /http/g.test(data.img); });
-                                sanitizeFilters[0].page = countPages;
-                                return sanitizeFilters;
-                            }
-                            catch (error) {
-                                console.error(error);
-                                return false;
-                            }
-                        })];
-                case 4:
-                    data = _a.sent();
-                    return [4 /*yield*/, browser.close()];
-                case 5:
-                    _a.sent();
-                    return [2 /*return*/, data];
+                    pagination = body.page || false;
+                    issetPag = pagination > 1 ? "o=" + pagination + "&" : '';
+                    _a = {
+                        url: "https://pr.olx.com.br/regiao-de-maringa/regiao-de-maringa?" + issetPag + "q=" + valueSearchUrl
+                    };
+                    return [4 /*yield*/, browser.newPage()];
+                case 2: return [2 /*return*/, (_a.page = _b.sent(),
+                        _a.browser = browser,
+                        _a)];
             }
         });
-    }); }
-};
-exports["default"] = (function (body) { return __awaiter(void 0, void 0, void 0, function () {
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0: return [4 /*yield*/, scraping.olx(body)];
-            case 1: return [2 /*return*/, _a.sent()];
+    }); },
+    olx: {
+        getDataSanitize: function () {
+            try {
+                var getDataSale = function (el) { return ({
+                    value: Array.from(el.querySelectorAll('p')).filter(function (p) { return p.textContent.match(/R\$/); }).map(function (filtered) { return filtered.textContent; }).toString(),
+                    img: Array.from(el.querySelectorAll('img')).map(function (img) { return img.dataset.src; }).toString(),
+                    title: el.getAttribute('title'),
+                    link: el.getAttribute('href')
+                }); };
+                var dataArray = Array.from(document.querySelectorAll('#ad-list li a'));
+                var countPages = document.querySelectorAll('[data-lurker-detail="pagination_item"]').length + 1;
+                var sanitizeFilters = dataArray.map(getDataSale).filter(function (data) { return data.title && /http/g.test(data.img); });
+                sanitizeFilters[0].pages = countPages;
+                return sanitizeFilters;
+            }
+            catch (error) {
+                console.log(error);
+                return false;
+            }
+        },
+        process: function (_a) {
+            var page = _a.page, url = _a.url, browser = _a.browser;
+            return __awaiter(void 0, void 0, void 0, function () {
+                var data;
+                return __generator(this, function (_b) {
+                    switch (_b.label) {
+                        case 0: return [4 /*yield*/, page.goto(url)];
+                        case 1:
+                            _b.sent();
+                            return [4 /*yield*/, page.evaluate(scraping.olx.getDataSanitize)];
+                        case 2:
+                            data = _b.sent();
+                            return [2 /*return*/, { browser: browser, data: data }];
+                    }
+                });
+            });
         }
-    });
-}); });
+    },
+    "finally": function (_a) {
+        var browser = _a.browser, data = _a.data;
+        return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0: return [4 /*yield*/, browser.close()];
+                case 1:
+                    _b.sent();
+                    return [2 /*return*/, data];
+            }
+        }); });
+    }
+};
+exports["default"] = utils_1["default"].composeF(scraping.init, scraping.olx.process, scraping["finally"]);

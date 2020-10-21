@@ -35,7 +35,7 @@
         <v-btn dark text v-bind="attrs" @click="snackbar = false">Close</v-btn>
       </template>
     </v-snackbar>
-      <!-- <Modal :dialog="true" /> -->
+    <!-- <Modal :dialog="true" /> -->
   </v-card>
 </template>
 
@@ -53,6 +53,7 @@ export default {
     search: {
       value: "",
       loading: false,
+      page: 1,
     },
     snackbar: {
       color: "success",
@@ -64,17 +65,20 @@ export default {
       y: "top",
     },
   }),
+  created() {
+    bus.$on("page", (page) => this.searchAd(null, page));
+  },
   methods: {
-    searchAd: async function () {
-      // await loginFacebook.auth();
-
+    searchAd: async function (ev, page = 1) {
+      this.search.page = page;
+      if (this.search.page === 1) bus.$emit("pageDefault", this.search.page);
+      const dataView = { search: this.search.value, page: this.search.page };
       const dirAPI = "http://localhost:3000";
       this.search.loading = true;
       bus.$emit("loading", true);
+
       try {
-        const { data } = await axios.post(dirAPI, {
-          search: this.search.value,
-        });
+        const { data } = await axios.post(dirAPI, dataView);
         this.snackbar.snackbar = true;
         bus.$emit("loading", false);
         bus.$emit("changeSearch", data);
